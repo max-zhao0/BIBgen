@@ -74,5 +74,5 @@ warn_unreachable = true
 
 # You can disable imports or control per-module/file settings here
 [[tool.mypy.overrides]]
-module = [ "numpy.*", ]
+module = ["numpy.*", "matplotlib.*", "sklearn.*", "torch.*"]
 ignore_missing_imports = true
