@@ -22,3 +22,10 @@ repos:
     - id: mypy
       files: src
       args: []
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: "v0.13.2"
+  hooks:
+    - id: ruff-check
+      args: ["--fix", "--show-fixes"]
+    - id: ruff-format
