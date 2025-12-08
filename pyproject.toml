@@ -19,7 +19,10 @@ dependencies = [
 	"scipy",
 	"scikit-learn",
 	"matplotlib",
-    "torch==2.9.0",
+    	"torch==2.9.0",
+	"pyLCIO",
+	"h5py",
+	"argparse",
 ]
 
 [dependency-groups]
