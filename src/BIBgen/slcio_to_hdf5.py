@@ -3,28 +3,6 @@ import h5py
 from argparse import ArgumentParser
 import numpy as np
 
-def parse_input():
-    """
-    Unpack the commandline input and return a list of files for reading.
-
-    Notes: Supports multiple file inputs
-
-    Arguments:
-        None (to be called first in function __main__)
-
-    Returns: 
-        slcio_files (list): A list of slcio files
-        hdf5_file (string): The name of the output file
-    """
-    slcio_files = []
-    parser = ArgumentParser()
-    parser.add_argument('-i', '--inFiles', dest = 'inFiles', help= 'slcio files to translate', nargs='+')
-    parser.add_argument('-o', '--outFile', dest = 'outFile', help = 'output hdf file, with .hdf5 extension')
-    args = parser.parse_args()
-    for file in args.inFiles:
-        slcio_files.append(file)
-    return slcio_files, args.outFile
-
 def make_event_group(hdf5_file, evt_num):
     """
     Create a group one level below file to represent a single event.
