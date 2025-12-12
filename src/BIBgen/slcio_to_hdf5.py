@@ -1,29 +1,6 @@
 from pyLCIO import IOIMPL, EVENT, UTIL
 import h5py
-from argparse import ArgumentParser
 import numpy as np
-
-def parse_input():
-    """
-    Unpack the commandline input and return a list of files for reading.
-
-    Notes: Supports multiple file inputs
-
-    Arguments:
-        None (to be called first in function __main__)
-
-    Returns: 
-        slcio_files (list): A list of slcio files
-        hdf5_file (string): The name of the output file
-    """
-    slcio_files = []
-    parser = ArgumentParser()
-    parser.add_argument('-i', '--inFiles', dest = 'inFiles', help= 'slcio files to translate', nargs='+')
-    parser.add_argument('-o', '--outFile', dest = 'outFile', help = 'output hdf file, with .hdf5 extension')
-    args = parser.parse_args()
-    for file in args.inFiles:
-        slcio_files.append(file)
-    return slcio_files, args.outFile
 
 def make_event_group(hdf5_file, evt_num):
     """
@@ -175,17 +152,18 @@ def fill_trackerhit_datasets(slcio_coll, hdf5_coll):
 
 
 
-def main():
+def convert_files(files_to_read, file_to_write):
     """
-    The main routine. Called when "python slcio_to_hdf5.py -i [input_files] is entered at command line.
-    Grabs slcio files from the commandline, opens them, gets desired collections, and writes to hdf5 file.
+    The main routine. In the executable script, get the arguments from the command line and call this function. 
+    Grabs slcio files, opens them, gets desired collections, and writes to hdf5 file.
 
-    Arguments: None
+    Arguments:
+        files_to_read (list[str]): list of slcio filepaths
+        file_to_write (str): filepath of output file
     
     Returns: None
 
     """
-    files_to_read, file_to_write = parse_input()
     
     # create hdf5 file before event loop
     with h5py.File(file_to_write, 'w') as hdf_file:
@@ -234,11 +212,4 @@ def main():
                 # end of event loop
             file_iter += 1
             reader.close()
-            if file_iter > 5:
-                break
             # end file loop
-
-
-
-if __name__ == "__main__":
-    main()

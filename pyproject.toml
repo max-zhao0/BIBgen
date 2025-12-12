@@ -30,6 +30,7 @@ test = [
 dev = [
 	{include-group = "test"},
   "torchvision",
+   "pyLCIO",
 ]
 
 [tool.ruff.lint]
