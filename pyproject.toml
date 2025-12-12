@@ -20,8 +20,7 @@ dependencies = [
 	"scikit-learn",
 	"matplotlib",
     	"torch==2.9.0",
-	"h5py",
-	"argparse",
+	"h5py"
 ]
 
 [dependency-groups]

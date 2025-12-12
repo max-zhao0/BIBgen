@@ -6,7 +6,8 @@ import torch
 parser = argparse.ArgumentParser()
 parser.add_argument("model_path")
 parser.add_argument("-c", "--condor", action="store_true")
-parser.add_argument("-n", "--nhits", type=int)
+parser.add_argument("-n", "--nevents", type=int)
+parser.add_argument("-s", "--size", type=int)
 args = parser.parse_args()
 
 if args.condor:
@@ -18,7 +19,8 @@ else:
 
 def main(args):
     model_path = args.model_path
-    nhits = args.nhits
+    nhits = args.size
+    nevents = args.nevents
     assert model_path.endswith(".pth")
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -32,11 +34,11 @@ def main(args):
         n_hidden_layers = 4
     )
     model.load_state_dict(torch.load(model_path, weights_only=True))
-
-    sphered = generate_sphered(model, nhits, device, demo=True, verbosity=1)
     
     with h5py.File("demo.hdf5", "w") as fout:
-        fout.create_dataset("evt_demo", data=sphered.cpu())
+        for event_no in range(nevents):
+            sphered = generate_sphered(model, nhits, device, demo=False, verbosity=1)
+            fout.create_dataset("evt_{}".format(event_no), data=sphered.cpu())
 
     return 0
 
