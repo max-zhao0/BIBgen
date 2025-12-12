@@ -1,7 +1,6 @@
 from typing import Callable, Collection
 from collections import OrderedDict
 
-import numpy as np
 import torch
 from torch import nn
 
@@ -73,7 +72,8 @@ class FourierEncoding(nn.Module):
         x_fourier : torch.Tensor
             Tensor of fourier vector representation with dimension `(n_members, dimension)`
         """
-        frequencies = 2 * np.pi * self.fourier_activation(self.fourier_table)
+        frequencies = 2 * torch.pi * self.fourier_activation(self.fourier_table)
+        # frequencies = frequencies.to(device=x.device, dtype=x.dtype)
         thetas = torch.outer(x, frequencies)
         sin_elems = torch.sin(thetas)
         cos_elems = torch.cos(thetas)
@@ -147,9 +147,18 @@ class EquivariantLayer(nn.Module):
         self : EquivariantLayer
             torch module useable in neural networks
         """
-        self.lambda_mat = nn.Parameter(torch.rand((output_size, input_size)))
-        self.gamma_mat = nn.Parameter(torch.rand((output_size, input_size)))
-        self.bias_vec = nn.Parameter(torch.rand(output_size))
+        super().__init__()
+
+        # self.lambda_mat = nn.Parameter(torch.rand((output_size, input_size)))
+        # self.gamma_mat = nn.Parameter(torch.rand(((output_size, input_size))))
+        # self.bias_vec = nn.Parameter(torch.rand(output_size))
+
+        self.lambda_mat = nn.Parameter(torch.empty(output_size, input_size))
+        self.gamma_mat = nn.Parameter(torch.empty(output_size, input_size))
+        self.bias_vec = nn.Parameter(torch.zeros(output_size))
+
+        nn.init.kaiming_uniform_(self.lambda_mat, a=0.0, nonlinearity="relu")
+        nn.init.kaiming_uniform_(self.gamma_mat,  a=0.0, nonlinearity="relu")
 
     def forward(self, input_set : torch.Tensor):
         r"""
@@ -166,28 +175,31 @@ class EquivariantLayer(nn.Module):
         output_set : torch.Tensor
             Output set with shape (n_members, output_size)
         """
+        # lambda_mat = self.lambda_mat.to(device=input_set.device, dtype=input_set.device)
+        # gamma_mat = self.gamma_mat.to(device=input_set.device, dtype=input_set.device)
+        # bias_vec = self.bias_vec.to(device=input_set.device, dtype=input_set.device)
+
         n_members = input_set.size()[0]
         x = torch.unsqueeze(input_set, 2) # (n_members, input_size, 1)
 
         lambda_I = self.lambda_mat.expand(n_members, -1, -1) # (n_members, output_size, input_size)
         self_term = torch.matmul(lambda_I, x)[:,:,0] # (n_members, output_size)
 
-        gamma11 = self.gamma_mat.expand(n_members, n_members, -1, -1) # (n_members, n_members, output_size, input_size)
-        gamma11_dot_x = torch.matmul(gamma11, x)[:,:,:,0] # (n_members, n_members, output_size)
-        interaction_term = torch.sum(gamma11_dot_x, axis=1) # (n_members, output_size)
+        x_sum = torch.mean(x, dim=(0,2)) # (input_size) # TODO: Reconsider mean
+        gamma_x_sum = torch.matmul(self.gamma_mat, x_sum) # (output_size)
+        interaction_term = gamma_x_sum.expand(n_members, -1) # (n_members, output_size)
 
         bias_term = self.bias_vec.expand(n_members, -1) # (n_members, output_size)
 
         return self_term + interaction_term + bias_term
 
 class EquivariantDenoiser(nn.Module):
-    def __init__(self
+    def __init__(self,
         n_timesteps : int,
         tau_encoding_dimension : int,
         position_encoding_dimension : int,
         hidden_layer_size : int,
-        n_hidden_layers : int,
-        betas : torch.Tensor | None = None
+        n_hidden_layers : int
     ):
         """
         Denoising model using a deep equivariant tower for prediction.
@@ -208,6 +220,8 @@ class EquivariantDenoiser(nn.Module):
             Diffusion schedule with shape (n_timesteps,).
             Used to initiate the variance tower.
         """
+        super().__init__()
+
         self.pos1_encoding = FourierEncoding(position_encoding_dimension)
         self.pos2_encoding = FourierEncoding(position_encoding_dimension)
         self.pos3_encoding = FourierEncoding(position_encoding_dimension)
@@ -224,7 +238,7 @@ class EquivariantDenoiser(nn.Module):
                 ("hidden{}".format(ihidden), EquivariantLayer(hidden_layer_size, hidden_layer_size)),
                 ("activation{}".format(ihidden), nn.ReLU())
             ]
-        equivariant_layers.append(("prediction_output", EquivariantLayer(hidden_layer_size, 4 + 4**2)))
+        equivariant_layers.append(("prediction_output", EquivariantLayer(hidden_layer_size, 4 * 2)))
         self.prediction_tower = nn.Sequential(OrderedDict(equivariant_layers))
 
     def forward(self, input_set : torch.Tensor, tau : int):
@@ -247,14 +261,15 @@ class EquivariantDenoiser(nn.Module):
         variance : float
             Variance of all elements of the prediction.
         """
-        tau_encoded = self.tau_encoding(torch.Tensor([tau / self.n_timesteps])).expand(len(input_set), -1)
+        tau_scalar = input_set.new_tensor(data=[tau / self.n_timesteps])
+        tau_encoded = self.tau_encoding(tau_scalar).expand(len(input_set), -1)
         pos1_encoded = self.pos1_encoding(input_set[:,1])
-        pos2_encoded = self.pos1_encoding(input_set[:,2])
+        pos2_encoded = self.pos2_encoding(input_set[:,2])
         pos3_encoded = self.pos3_encoding(input_set[:,3])
-        encoded_set = torch.cat((tau_encoded, input_set[:,0:1], pos1_encoded, pos2_encoded, pos3_encoded))
+        encoded_set = torch.cat((tau_encoded, input_set[:,0:1], pos1_encoded, pos2_encoded, pos3_encoded), axis=1)
 
         out = self.prediction_tower(encoded_set)
-        prediction = out[:,4]
-        variances = torch.reshape(out[4:], (-1, 4, 4))
+        prediction = out[:,:4]
+        variances = torch.nn.functional.softplus(out[:, 4:])
         
-        return prediction, variance
+        return prediction, variances
