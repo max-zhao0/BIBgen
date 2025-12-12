@@ -223,3 +223,6 @@ __marimo__/
 *.out
 *.err
 *.pth*
+
+# Self-explanatory
+*.png
