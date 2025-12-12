@@ -217,3 +217,8 @@ __marimo__/
 
 # hdf5 files
 .hdf5
+
+# Condor Output
+*.log
+*.out
+*.err

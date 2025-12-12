@@ -46,5 +46,7 @@ class GaussianNLLLoss(nn.Module):
         
         # NLL = 0.5 * (log(2pi) + log(variance) + normalized_error)
         loss = 0.5 * (1.8378770664093453 + log_variance + normalized_error)
-        
+    
+        ret = loss.mean()
+
         return loss.mean()
