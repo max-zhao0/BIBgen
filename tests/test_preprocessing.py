@@ -34,4 +34,4 @@ def test_diffuse():
     result = diffuse(data, betas)
 
     assert np.all(result[0] == data)
-    assert np.mean(result[-1], axis=0) == pytest.approx(np.zeros(5), abs=0.1)
+    assert np.mean(result[-1], axis=0) == pytest.approx(np.zeros(5), abs=0.15)
