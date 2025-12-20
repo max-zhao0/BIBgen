@@ -45,15 +45,9 @@ class FourierEncoding(nn.Module):
         half_dimension = dimension // 2
 
         if initial_frequencies is None:
-            initial_frequencies = 0.5**torch.linspace(1, 16, half_dimension)
-        if len(initial_frequencies) != half_dimension:
-            raise ValueError("Size of initial_frequencies is not half of dimension")
+            initial_frequencies = torch.arange(1, half_dimension+1)
 
-        # Inverse sigmoid
-        initial_values = - torch.log((1 / initial_frequencies) - 1)
-
-        self.fourier_table = nn.Parameter(data=initial_values)
-        self.fourier_activation = nn.Sigmoid()
+        self.frequency_table = nn.Parameter(data=initial_frequencies, dtype=torch.float32)
 
     def forward(self, x : torch.Tensor) -> torch.Tensor:
         """
@@ -72,9 +66,7 @@ class FourierEncoding(nn.Module):
         x_fourier : torch.Tensor
             Tensor of fourier vector representation with dimension `(n_members, dimension)`
         """
-        frequencies = 2 * torch.pi * self.fourier_activation(self.fourier_table)
-        # frequencies = frequencies.to(device=x.device, dtype=x.dtype)
-        thetas = torch.outer(x, frequencies)
+        thetas = torch.outer(x, self.frequency_table)
         sin_elems = torch.sin(thetas)
         cos_elems = torch.cos(thetas)
         return torch.cat((sin_elems, cos_elems), dim=1)
