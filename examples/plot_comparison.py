@@ -28,7 +28,7 @@ def main(args):
     aggr_mcdata = np.concatenate(list(mcdata.values()))
 
     analyzer = BIBgenHistogramAnalyzer(
-        energy_range = (0, 0.004),
+        energy_range = (-0.0005, 0.005),
         phi_range = (-1.0, 1.0),
         eta_range = (-1.3, 1.3),
         s_range = (1800, 2250),
@@ -38,7 +38,8 @@ def main(args):
     mc_vars = analyzer.load_from_model_output(aggr_mcdata, is_sphered=False)
     gen_vars = analyzer.load_from_model_output(aggr_gendata, sphering=Sphering(mu, std))
 
-    analyzer.plot_overlay_comparison(mc_vars, gen_vars, prefix="aggr", normalized=False)
+    analyzer.plot_overlay_comparison(mc_vars, gen_vars, prefix="aggr_log", normalized=False)
+    analyzer.plot_overlay_comparison(mc_vars, gen_vars, prefix="aggr", normalized=False, log_scale=False)
     analyzer.plot_eta_phi_2d(mc_vars, prefix="mc", bins=50)
     analyzer.plot_eta_phi_2d(gen_vars, prefix="gen", bins=50)
     analyzer.plot_s_eta_2d(mc_vars, prefix="mc", bins=50)
@@ -52,7 +53,7 @@ def main(args):
     return 0
 
 if __name__ == "__main__":
-    # uv run plot_comparison.py ../data/raw_cyl_phipi4_medium.hdf5 generation/like_v6.hdf5
+    # uv run plot_comparison.py ../data/raw_cyl_phipi4_large.hdf5 generation/like_v7.hdf5
     parser = argparse.ArgumentParser()
     parser.add_argument("mc_file")
     parser.add_argument("gen_file")

@@ -373,7 +373,8 @@ class BIBgenHistogramAnalyzer:
                                 gen_hits: Dict[str, np.ndarray],
                                 prefix: str = "comparison",
                                 bins: int = 100,
-                                normalized : bool = True):
+                                normalized : bool = True,
+                                log_scale : bool = True):
         """Plot MC and generated data overlayed on same axes."""
         
         fig, axes = plt.subplots(2, 3, figsize=(18, 12))
@@ -387,7 +388,6 @@ class BIBgenHistogramAnalyzer:
         axes[0, 0].set_xlabel('Energy [GeV]', fontsize=12)
         axes[0, 0].set_ylabel('Counts', fontsize=12)
         axes[0, 0].set_title('Energy', fontsize=13, fontweight='bold')
-        axes[0, 0].set_yscale('log')
         axes[0, 0].set_xlim(*self.energy_range)
         axes[0, 0].legend()
         axes[0, 0].grid(True, alpha=0.3)
@@ -442,6 +442,13 @@ class BIBgenHistogramAnalyzer:
         axes[1, 1].set_xlim(*self.z_range)
         axes[1, 1].legend()
         axes[1, 1].grid(True, alpha=0.3)
+
+        if log_scale:
+            axes[0, 0].set_yscale('log')
+            axes[0, 1].set_yscale('log')
+            axes[0, 2].set_yscale('log')
+            axes[1, 0].set_yscale('log')
+            axes[1, 1].set_yscale('log')
         
         # Stats
         axes[1, 2].axis('off')
@@ -472,9 +479,9 @@ class BIBgenHistogramAnalyzer:
 def compare_mc_vs_generated(mc_hits: Dict[str, np.ndarray],
                            gen_hits: Dict[str, np.ndarray],
                            output_dir: str = "comparison",
-                           overlay: bool = True):
+                           overlay: bool = True, **kwargs):
     """Compare MC vs generated. Set overlay=False for separate plots."""
-    analyzer = BIBgenHistogramAnalyzer(output_dir=output_dir)
+    analyzer = BIBgenHistogramAnalyzer(output_dir=output_dir, **kwargs)
     
     if overlay:
         analyzer.plot_overlay_comparison(mc_hits, gen_hits)
