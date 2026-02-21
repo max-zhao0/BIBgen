@@ -426,7 +426,6 @@ class BIBgenHistogramAnalyzer:
         axes[1, 0].set_xlabel('s [mm]', fontsize=12)
         axes[1, 0].set_ylabel('Counts', fontsize=12)
         axes[1, 0].set_title('Radial', fontsize=13, fontweight='bold')
-        axes[1, 0].set_yscale('log')
         axes[1, 0].set_xlim(*self.s_range)
         axes[1, 0].legend()
         axes[1, 0].grid(True, alpha=0.3)
