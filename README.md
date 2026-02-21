@@ -22,3 +22,44 @@ pytest tests/
 ```
 
 Note about testing: unless you are in an environment equipped with the ``pyLCIO`` software, exclude ``test_conversion.py`` from your tests. ``pyLCIO`` is not distributed with PyPI, so you cannot install the package as a dependency. It is only needed for the file conversion step (see ``scripts/convert_slcio_files.py``).
+
+## Preprocessing
+
+```bash
+mkdir data
+cd examples
+```
+
+```bash
+uv run make_training_data.py /scratch/rosep8/BIBgen/src/BIBgen/sim_mm_0_1000.hdf5 /scratch/rosep8/BIBgen/src/BIBgen/sim_mp_0_1000.hdf5 -o ../data/raw_cyl_phipi4_large.hdf5 -s 700,200,100 -c -p 0.785398
+```
+
+```bash
+uv run diffuse.py ../data/raw_cyl_phipi4_large.hdf5 noise_schedule.csv -o ../data/diffused_cyl_phipi4_large.hdf5
+```
+
+## Training
+
+```bash
+uv run training/train.py ../data/diffused_cyl_phipi4_large.hdf5 noise_schedule.csv -e 151 -b 5
+```
+
+```bash
+condor_submit training/submit_train.sub
+```
+
+## Generation
+
+```bash
+uv run generation/write_test_sizes.py ../data/raw_cyl_phipi4_large.hdf5 -o generation/test_sizes_large.csv
+```
+
+```bash
+uv run generation/generate_like.py denoiser.pth noise_schedule.csv test_sizes_large.csv
+```
+
+```bash
+condor_submit generation/submit_generate_like.sub
+```
+
+# Analysis
