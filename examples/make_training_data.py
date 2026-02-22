@@ -135,6 +135,6 @@ if __name__ == "__main__":
     parser.add_argument("mp_path", help="path to mu+ data")
     parser.add_argument("-o", "--out", default="raw_data.hdf5", help="path to output")
     parser.add_argument("-s", "--split", default="700,200,100", help="training,validation,test split")
-    parser.add_argument("-c", "--cylindrical", action="store_true")
-    parser.add_argument("-p", "--phi-window", default=np.pi, type=float)
+    parser.add_argument("-c", "--cylindrical", action="store_true", help="Whether the training data should be in cylindrical coordinates")
+    parser.add_argument("-p", "--phi-window", default=np.pi, type=float, help="Phi to slice the data. Data will only be kept in a slice betwee -phi and phi")
     print("\nFinished with exit code:", main(parser.parse_args()))
