@@ -1,2 +1,2 @@
-from .bibgen_histogram_analysis import *
+from .comparison_analyzer import *
 from .plotting import *
