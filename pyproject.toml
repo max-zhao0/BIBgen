@@ -22,6 +22,7 @@ dependencies = [
     	"torch==2.9.0",
 	"h5py",
   "mplhep",
+  "pandas"
 ]
 
 [dependency-groups]
