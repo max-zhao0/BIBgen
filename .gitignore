@@ -233,3 +233,6 @@ private
 *test_sizes*.csv
 
 *.csv
+
+# Slop
+CLAUDE.md
