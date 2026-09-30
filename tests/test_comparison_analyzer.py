@@ -77,41 +77,6 @@ class TestComparisonAnalyzer:
         assert Path(temp_dir).exists()
         assert analyzer.output_dir == Path(temp_dir)
 
-    def test_eta_computation(self):
-        """Test pseudorapidity calculation."""
-        analyzer = ComparisonAnalyzer(**var_range)
-
-        # Test forward region (positive z)
-        s = np.array([100.0])
-        z = np.array([200.0])
-        eta = analyzer.compute_eta_from_cylindrical(s, z)
-        assert np.isfinite(eta[0])
-        assert eta[0] > 0
-
-        # Test backward region (negative z)
-        z = np.array([-200.0])
-        eta = analyzer.compute_eta_from_cylindrical(s, z)
-        assert np.isfinite(eta[0])
-        assert eta[0] < 0
-
-    def test_delta_r_computation(self):
-        """Test delta R calculation."""
-        analyzer = ComparisonAnalyzer(**var_range)
-
-        eta1 = np.array([0.0, 1.0])
-        phi1 = np.array([0.0, 0.0])
-        eta2 = np.array([1.0, 1.0])
-        phi2 = np.array([0.0, np.pi])
-
-        dr = analyzer.delta_r(eta1, phi1, eta2, phi2)
-
-        # Check that delta R is positive
-        assert np.all(dr >= 0)
-
-        # Check that identical points have dr = 0
-        dr_same = analyzer.delta_r(eta1, phi1, eta1, phi1)
-        assert np.allclose(dr_same, 0)
-
     def test_delta_r_cone_counting(self, sample_hits):
         """Test neighbor counting in delta R cone."""
         analyzer = ComparisonAnalyzer(**var_range)

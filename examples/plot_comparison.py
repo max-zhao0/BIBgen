@@ -111,7 +111,7 @@ def main(args):
     return 0
 
 if __name__ == "__main__":
-    # uv run plot_comparison.py ../data/raw_cyl_phipi4_large.hdf5 generation/like_v9.hdf5,Deepsets generation/like_v10.hdf5,MLP
+    # uv run plot_comparison.py /ospool/uc-shared/project/futurecolliders/rosep8/raw_cyl_phipi4_large_logE.hdf5 generation/v11_like.hdf5,v11 -t v11
     parser = argparse.ArgumentParser()
     parser.add_argument("mc_file")
     parser.add_argument("gen_files", nargs="+", help="One or more <path.hdf5>,<name> entries; name is the legend label")

@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 
 from BIBgen.analysis import plotting
+from BIBgen.analysis.utils import eta_from_cylindrical, deltaR
 
 class ComparisonAnalyzer:
     """Histogram analyzer for BIB detector hits in cylindrical coordinates."""
@@ -40,21 +41,6 @@ class ComparisonAnalyzer:
         if keys is None:
             keys = set(self.data.keys())
         return {name : self.aggr_data[name] for name in self.data if name in keys}
-    
-    def compute_eta_from_cylindrical(self, s: np.ndarray, z: np.ndarray) -> np.ndarray:
-        """
-        Compute pseudorapidity from cylindrical coordinates.
-        
-        Args:
-            s: Radial distance from beam axis
-            z: Z-position along beam axis
-            
-        Returns:
-            Pseudorapidity eta
-        """
-        theta = abs(np.arctan2(s, z))
-        eta = -np.log(np.tan((theta % (2*np.pi)) / 2.0 + 1e-10))
-        return eta
     
     def load_from_training_data(self, filepath: str, event_ids: List[str] = None) -> Dict[str, np.ndarray]:
         """
@@ -97,7 +83,7 @@ class ComparisonAnalyzer:
         phi = np.concatenate(all_phi)
         s = np.concatenate(all_s)
         z = np.concatenate(all_z)
-        eta = self.compute_eta_from_cylindrical(s, z)
+        eta = eta_from_cylindrical(s, z)
         
         return {'energy': energy, 'phi': phi, 's': s, 'z': z, 'eta': eta}
     
@@ -160,7 +146,7 @@ class ComparisonAnalyzer:
         
         phi = np.arctan2(y, x)
         s = np.sqrt(x**2 + y**2)
-        eta = self.compute_eta_from_cylindrical(s, z)
+        eta = eta_from_cylindrical(s, z)
         
         return {'energy': energy, 'phi': phi, 's': s, 'z': z, 'eta': eta}
     
@@ -197,7 +183,7 @@ class ComparisonAnalyzer:
             phi = data[:, 1]
             s = data[:, 2]
             z = data[:, 3]
-            eta = self.compute_eta_from_cylindrical(s, z)
+            eta = eta_from_cylindrical(s, z)
 
             events_processed[event_id] = {'energy': energy, 'phi': phi, 's': s, 'z': z, 'eta': eta}
             for var in events_processed[event_id]:
@@ -216,14 +202,6 @@ class ComparisonAnalyzer:
         self.data[name] = {event_id : hits}
         self.aggr_data[name] = hits
         return hits
-    
-    def delta_r(self, eta1: np.ndarray, phi1: np.ndarray,
-                       eta2: np.ndarray, phi2: np.ndarray) -> np.ndarray:
-        """Compute Delta R metric between coordinate pairs."""
-        delta_eta = eta1 - eta2
-        delta_phi = phi1 - phi2
-        delta_phi = np.arctan2(np.sin(delta_phi), np.cos(delta_phi))
-        return np.sqrt(delta_eta**2 + delta_phi**2)
     
     def compute_hits_in_delta_r_cone(self, hits: Dict[str, np.ndarray],
                                      delta_r_threshold: float = 0.4,
@@ -252,7 +230,7 @@ class ComparisonAnalyzer:
         hits_in_cone = np.zeros(n_hits, dtype=int)
         
         for i in range(n_hits):
-            delta_r = self.delta_r(eta[i], phi[i], eta, phi)
+            delta_r = deltaR(eta[i], phi[i], eta, phi)
             hits_in_cone[i] = np.sum((delta_r < delta_r_threshold) & (delta_r > 0))
         
         return hits_in_cone
@@ -642,7 +620,7 @@ class ComparisonAnalyzer:
             event_hist = np.empty((nhits, bins))
 
             for ihit in range(nhits):
-                dRs = self.delta_r(etas[ihit], phis[ihit], etas, phis)
+                dRs = deltaR(etas[ihit], phis[ihit], etas, phis)
                 event_hist[ihit], bin_edges = np.histogram(dRs, bins=bins, range=dR_range, weights=energies) if use_energy else np.histogram(dRs, bins=bins, range=dR_range)
 
             histograms[name] = (np.mean(event_hist, axis=0), bin_edges)
