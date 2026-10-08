@@ -3,7 +3,7 @@ Generates a tiny synthetic diffused dataset for pre-submit debugging of the cond
 training pipeline (argument mapping, file transfer, python environment) without waiting
 on a GPU slot or the real, large, osdf-hosted dataset.
 
-Pairs with config/debug_noise_schedule.csv (10 steps) and config/vsmall_equivariant_denoiser.json.
+Pairs with config/noise_schedules/debug_noise_schedule.csv (10 steps) and config/models/vsmall_equivariant_denoiser.json.
 Run this from examples/training/ so debug_diffused.hdf5 lands next to submit_debug_train.sub.
 """
 import h5py

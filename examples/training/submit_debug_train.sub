@@ -17,7 +17,7 @@ request_disk = 1GB
 # No GPU request on purpose: tiny synthetic data trains instantly on CPU, and this
 # skips the GPU-slot wait that made the real path/argument bugs so slow to iterate on.
 # Uses the real run_train.sh unmodified, and the real config/ transfer (which now also
-# carries config/debug_noise_schedule.csv) -- this exercises the exact same argument
+# carries config/noise_schedules/debug_noise_schedule.csv) -- this exercises the exact same argument
 # mapping and file-transfer code path as submit_train.sub, just pointed at debug_diffused.hdf5
 # (transferred directly, not via osdf) instead of the real dataset.
 transfer_input_files = train.py, ../../src, ../../config, debug_diffused.hdf5

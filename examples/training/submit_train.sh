@@ -17,9 +17,9 @@
 # Then each row is `data config tag schedule` (whitespace- or comma-separated, so existing condor
 # experiments files work unchanged). `#` comments and blank lines are skipped.
 #   data      diffused hdf5: a bare name is looked up in DATA_DIR, a path is used as given
-#   config    model json in config/
+#   config    model json in config/models/
 #   tag       names denoiser_<tag>.pth and history_<tag>.csv (written to $REPO/examples/training/)
-#   schedule  noise schedule csv in config/ -- must be the one `data` was diffused with
+#   schedule  noise schedule csv in config/noise_schedules/ -- must be the one `data` was diffused with
 #
 # Extra options are passed straight to sbatch and override train.slurm's #SBATCH defaults,
 # e.g. --constraint=gpu80, and also override MAIL_USER's --mail-type=END,FAIL and RUNTIME.
@@ -97,8 +97,8 @@ while read -r data config tag schedule extra; do
     [[ $data == */* ]] && data_path=$data || data_path=$DATA_DIR/$data
     missing=""
     [[ -f $data_path ]] || missing+=" $data_path"
-    [[ -f $REPO/config/$config ]] || missing+=" config/$config"
-    [[ -f $REPO/config/$schedule ]] || missing+=" config/$schedule"
+    [[ -f $REPO/config/models/$config ]] || missing+=" config/models/$config"
+    [[ -f $REPO/config/noise_schedules/$schedule ]] || missing+=" config/noise_schedules/$schedule"
     if [[ -n $missing ]]; then
         echo "Skipping $tag: missing$missing" >&2
         status=1; continue

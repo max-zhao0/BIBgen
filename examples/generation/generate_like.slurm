@@ -35,9 +35,9 @@ OUT_DIR=${OUT_DIR:-$REPO/examples/generation}
 SIZES=${SIZES:-$REPO/examples/generation/test_sizes_large.csv}
 GENERATE_ARGS=${GENERATE_ARGS:-}
 
-: "${CONFIG:?CONFIG (model json in config/) is not set}"
+: "${CONFIG:?CONFIG (model json in config/models/) is not set}"
 : "${TAG:?TAG is not set}"
-: "${SCHEDULE:?SCHEDULE (noise schedule csv in config/, same as training) is not set}"
+: "${SCHEDULE:?SCHEDULE (noise schedule csv in config/noise_schedules/, same as training) is not set}"
 
 model_path=$MODEL_DIR/denoiser_$TAG.pth
 for f in "$model_path" "$SIZES"; do
@@ -58,6 +58,6 @@ nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 cd "$OUT_DIR"
 # shellcheck disable=SC2086  # GENERATE_ARGS is deliberately word-split
 python "$REPO/examples/generation/generate_like.py" "$model_path" \
-    "$REPO/config/$CONFIG" "$REPO/config/$SCHEDULE" "$SIZES" -t "$TAG" $GENERATE_ARGS
+    "$REPO/config/models/$CONFIG" "$REPO/config/noise_schedules/$SCHEDULE" "$SIZES" -t "$TAG" $GENERATE_ARGS
 
 echo "=== finished at $(date)"

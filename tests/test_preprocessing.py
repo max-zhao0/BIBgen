@@ -40,7 +40,7 @@ def test_diffuse():
 
 def test_quadratic_beta_schedule_matches_baseline():
     schedule = quadratic_beta_schedule(100, scale=3e-5)
-    baseline = np.loadtxt(Path(__file__).parent.parent / "config" / "noise_schedule.csv")
+    baseline = np.loadtxt(Path(__file__).parent.parent / "config" / "noise_schedules" / "noise_schedule.csv")
     assert np.array_equal(schedule, baseline)
 
 def test_cosine_beta_schedule_hits_target_alpha_bar():

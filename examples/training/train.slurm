@@ -49,9 +49,9 @@ BATCH_SIZE=${BATCH_SIZE:-5}
 TRAIN_ARGS=${TRAIN_ARGS:-}
 
 : "${DATA:?DATA (diffused hdf5, name in DATA_DIR or a path) is not set}"
-: "${CONFIG:?CONFIG (model json in config/) is not set}"
+: "${CONFIG:?CONFIG (model json in config/models/) is not set}"
 : "${TAG:?TAG is not set}"
-: "${SCHEDULE:?SCHEDULE (noise schedule csv in config/) is not set}"
+: "${SCHEDULE:?SCHEDULE (noise schedule csv in config/noise_schedules/) is not set}"
 
 # A bare filename is looked up in DATA_DIR; anything with a slash is used as given.
 [[ $DATA == */* ]] && data_path=$DATA || data_path=$DATA_DIR/$DATA
@@ -70,7 +70,7 @@ nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 cd "$OUT_DIR"
 # shellcheck disable=SC2086  # TRAIN_ARGS is deliberately word-split
 python "$REPO/examples/training/train.py" "$data_path" \
-    "$REPO/config/$SCHEDULE" "$REPO/config/$CONFIG" \
+    "$REPO/config/noise_schedules/$SCHEDULE" "$REPO/config/models/$CONFIG" \
     -e "$EPOCHS" -b "$BATCH_SIZE" -t "$TAG" $TRAIN_ARGS
 
 echo "=== finished at $(date)"

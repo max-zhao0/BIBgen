@@ -1,0 +1,28 @@
+universe = container
+container_image = /cvmfs/singularity.opensciencegrid.org/htc/pytorch:2.3.1-cuda11.8
+
+log = job_$(Cluster)_$(Process).log
+error = job_$(Cluster)_$(Process).err
+output = job_$(Cluster)_$(Process).out
+
+executable = run_hyperoptimize.sh
+arguments = $(data) $(config) $(out) $(schedule)
+
++JobDurationCategory = "Long"
+
+gpus_minimum_capability = 7.5
+request_gpus = 1
+
+# Blacklist Notre Dame GPUs, comment out later
+requirements = (GLIDEIN_ResourceName =!= "ND-CAML-GPU-CE1")
+max_retries = 3
+
+request_cpus = 2
+request_memory = 16GB
+request_disk = 50GB
+
+transfer_input_files = hyperoptimize.py, ../../src, ../../config, osdf:///ospool/uc-shared/project/futurecolliders/rosep8/$(data)
+transfer_output_files = $(out)
+should_transfer_files = YES
+
+queue data,config,out,schedule from experiments_hyper.txt

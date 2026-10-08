@@ -22,7 +22,8 @@ dependencies = [
     	"torch==2.9.0",
 	"h5py",
   "mplhep",
-  "pandas"
+  "pandas",
+  "optuna"
 ]
 
 [dependency-groups]

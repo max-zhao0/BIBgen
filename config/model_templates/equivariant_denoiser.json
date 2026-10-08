@@ -1,0 +1,22 @@
+{
+  "name": "EquivariantDenoiser",
+  "hyperparameters": {
+    "tau_encoding_dimension": {
+        "type" : "int",
+        "exponentiate" : true,
+        "range" : [4, 6]
+    },
+    "position_encoding_dimension" : 64,
+    "hidden_layer_size" : {
+        "type" : "int",
+        "exponentiate" : true,
+        "range" : [7, 9]
+    },
+    "n_hidden_layers": {
+        "type" : "int",
+        "exponentiate" : false,
+        "range" : [2, 6]
+    },
+    "use_position_encoding": false
+  }
+}

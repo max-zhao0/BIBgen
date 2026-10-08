@@ -14,10 +14,10 @@
 #
 # Then each row is `config tag schedule` (whitespace- or comma-separated, so existing condor
 # experiments files work unchanged). `#` comments and blank lines are skipped.
-#   config    model json in config/, as trained
+#   config    model json in config/models/, as trained
 #   tag       reads $REPO/examples/training/denoiser_<tag>.pth,
 #             writes $REPO/examples/generation/<tag>_like.hdf5
-#   schedule  noise schedule csv in config/ -- must be the one the model was trained with
+#   schedule  noise schedule csv in config/noise_schedules/ -- must be the one the model was trained with
 #
 # Extra options are passed straight to sbatch and override generate_like.slurm's #SBATCH
 # defaults, including MAIL_USER's --mail-type=END,FAIL and RUNTIME's --time. Use --dependency=afterok:<jobid> to
@@ -102,8 +102,8 @@ while read -r config tag schedule extra; do
     fi
 
     missing=""
-    [[ -f $REPO/config/$config ]] || missing+=" config/$config"
-    [[ -f $REPO/config/$schedule ]] || missing+=" config/$schedule"
+    [[ -f $REPO/config/models/$config ]] || missing+=" config/models/$config"
+    [[ -f $REPO/config/noise_schedules/$schedule ]] || missing+=" config/noise_schedules/$schedule"
     if [[ -n $missing ]]; then
         echo "Skipping $tag: missing$missing" >&2
         status=1; continue
