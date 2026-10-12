@@ -106,20 +106,29 @@ class BatchedDataLoader(BaseDataLoader):
 
         self.idx = self.nsteps
 
+        # The most recently read event. All batches of an event are served consecutively, so each
+        # event is read from the file once per epoch rather than once per batch.
+        self.cached_event_id = None
+        self.cached_event = None
+
     def nbatches(self, event_id):
         return self.ntau // self.batch_size_per_event[event_id]
-        
+
     def __next__(self):
         if self.idx >= self.nsteps:
-            self.shuffle_order = torch.randperm(self.nsteps) if self.shuffle else torch.arange(self.nsteps)
+            # Shuffle the order of events each epoch, and the diffusion timesteps within each event.
+            # Batches of one event stay together so that the event only has to be read once.
+            self.shuffle_order = torch.randperm(self.nevents) if self.shuffle else torch.arange(self.nevents)
             self.batch_indices = {
                 event_id : torch.reshape(
-                    torch.randperm(self.ntau), (self.nbatches(event_id), self.batch_size_per_event[event_id])
+                    torch.randperm(self.ntau) if self.shuffle else torch.arange(self.ntau),
+                    (self.nbatches(event_id), self.batch_size_per_event[event_id])
                 ) for event_id in self.batch_size_per_event
             }
 
             self.paths = []
-            for event_id in self.event_ids:
+            for event_no in self.shuffle_order:
+                event_id = self.event_ids[event_no]
                 for i in range(self.nbatches(event_id)):
                     self.paths.append((event_id, i))
 
@@ -130,6 +139,9 @@ class BatchedDataLoader(BaseDataLoader):
         batch_taus = self.batch_indices[event_id][batch_no]
         self.idx += 1
 
-        event = self.infile[self.key + "/" + event_id][:]
+        if event_id != self.cached_event_id:
+            self.cached_event = None  # release the previous event before reading the next
+            self.cached_event = self.infile[self.key + "/" + event_id][:]
+            self.cached_event_id = event_id
+        event = self.cached_event
         return torch.from_numpy(event[batch_taus + 1]).to(dtype=torch.float32), torch.from_numpy(event[batch_taus]).to(dtype=torch.float32), batch_taus
-        # return event[batch_taus + 1].to(dtype=torch.float32), event[batch_taus].to(dtype=torch.float32), batch_taus

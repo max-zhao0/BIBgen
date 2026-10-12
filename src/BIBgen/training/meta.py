@@ -49,15 +49,15 @@ def hyperoptimize(
             train(training_loader, model, loss_fn, optimizer, device)
 
             val_loss = evaluate(validation_loader, model, loss_fn, device)
-            trial.report(val_loss, epoch)
-            if trial.should_prune():
-                raise optuna.TrialPruned()
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
+            trial.report(best_val_loss, epoch)
+            if trial.should_prune():
+                raise optuna.TrialPruned()
 
         return best_val_loss
 
-    study = optuna.create_study(direction="minimize")
+    study = optuna.create_study(direction="minimize", pruner=optuna.pruners.MedianPruner(n_startup_trials=10, n_warmup_steps=5))
     study.optimize(objective, n_trials=ntrials, catch=(RuntimeError,))
 
     best_params = {}
