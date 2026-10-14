@@ -17,8 +17,8 @@ request_gpus = 1
 requirements = (GLIDEIN_ResourceName =!= "ND-CAML-GPU-CE1")
 max_retries = 3
 
-request_cpus = 1
-request_memory = 16GB
+request_cpus = 2
+request_memory = 8GB
 request_disk = 50GB
 
 transfer_input_files = train.py, ../../src, ../../config, osdf:///ospool/uc-shared/project/futurecolliders/rosep8/$(data)

@@ -5,8 +5,8 @@ Generates tiny inputs for pre-submit debugging of the condor generation pipeline
 Produces:
   - ../training/denoiser_debug.pth              (untrained but architecturally-valid
                                                   checkpoint, matching
-                                                  config/vsmall_equivariant_denoiser.json
-                                                  and config/debug_noise_schedule.csv's 10
+                                                  config/models/vsmall_equivariant_denoiser.json
+                                                  and config/noise_schedules/debug_noise_schedule.csv's 10
                                                   steps -- only needs to load correctly,
                                                   not be accurate)
   - debug_fixtures/test_sizes_large.csv         (a few tiny synthetic event sizes, named

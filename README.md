@@ -43,16 +43,16 @@ Produce raw training data. Currently this script splits events into training, va
 uv run make_training_data.py /scratch/rosep8/BIBgen/src/BIBgen/sim_mm_0_1000.hdf5 /scratch/rosep8/BIBgen/src/BIBgen/sim_mp_0_1000.hdf5 -o ../data/raw_cyl_phipi4_large.hdf5 -s 700,200,100 -c -p 0.785398
 ```
 
-Run the forward diffusion process on the training and validation datasets. The output has events in the same structure, but each event now contains the noisy timesteps according to `noise_schedule.csv`. `noise_schedule.csv` uses a 100 step quadratic schedule such that $\overline \alpha_t \approx 10^{-5}$.
+Run the forward diffusion process on the training and validation datasets. The output has events in the same structure, but each event now contains the noisy timesteps according to `config/noise_schedules/noise_schedule.csv`, which uses a 100 step quadratic schedule such that $\overline \alpha_t \approx 10^{-5}$.
 ```bash
-uv run diffuse.py ../data/raw_cyl_phipi4_large.hdf5 noise_schedule.csv -o ../data/diffused_cyl_phipi4_large.hdf5
+uv run diffuse.py ../data/raw_cyl_phipi4_large.hdf5 ../config/noise_schedules/noise_schedule.csv -o ../data/diffused_cyl_phipi4_large.hdf5
 ```
 
 ## Training
 
 Run the training, which will produce a file `denoiser.pth` with trained model weights. Note that the noise schedule must be provided since these are a proxy for predicted variances. The script will automatically use a cuda device if one is detected.
 ```bash
-uv run training/train.py ../data/diffused_cyl_phipi4_large.hdf5 noise_schedule.csv ../config/mlp_denoiser.json -e 151 -b 5
+uv run training/train.py ../data/diffused_cyl_phipi4_large.hdf5 ../config/noise_schedules/noise_schedule.csv ../config/models/mlp_denoiser.json -e 151 -b 5
 ```
 
 Condor scripts to submit the above script on OSPool is provided.
@@ -69,7 +69,7 @@ uv run generation/write_test_sizes.py ../data/raw_cyl_phipi4_large.hdf5 -o gener
 
 Generate a new dataset with the trained model. The model is completely agnostic to event size, so we purposely generate events of the same sizes as the test. This produces a file `like.hdf`
 ```bash
-uv run generation/generate_like.py denoiser.pth ../config/mlp_denoiser.json noise_schedule.csv test_sizes_large.csv
+uv run generation/generate_like.py denoiser.pth ../config/models/mlp_denoiser.json ../config/noise_schedules/noise_schedule.csv test_sizes_large.csv
 ```
 
 The above script can be submitted to OSPool.
