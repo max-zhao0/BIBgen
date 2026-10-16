@@ -5,6 +5,31 @@ import mplhep as mh
 
 mh.style.use("ATLAS")
 
+class MaiaAxis:
+    def __init__(self, outpath, **kwargs):
+        fig, ax = plt.subplots()
+        mh.label.exp_text(
+            "Muon Collider",
+            "Simulation",
+            "Internal",
+            "MAIA Detector Concept",
+            loc=1,
+            fontstyle=("italic", "normal", "normal", "normal"),
+            ax=ax
+        )
+
+        self.fig = fig
+        self.ax = ax
+        self.outpath = outpath
+        self.kwargs = kwargs
+
+    def __enter__(self):
+        return self.ax
+
+    def __exit__(self, type, value, traceback):
+        self.fig.savefig(self.outpath, **self.kwargs)
+        plt.close(self.fig)
+
 def maia_plot(
     xlabel : str,
     ylabel : str,
