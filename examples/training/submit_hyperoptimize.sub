@@ -21,8 +21,14 @@ request_cpus = 2
 request_memory = 8GB
 request_disk = 50GB
 
-transfer_input_files = hyperoptimize.py, ../../src, ../../config, osdf:///ospool/uc-shared/project/futurecolliders/rosep8/$(data)
-transfer_output_files = $(out)
+# Each row's study is kept in a folder named after `out` without .json, e.g. best_equivariant_denoiser/,
+# holding the optuna study (best_equivariant_denoiser.db) and, once every trial is done, the best config
+# (best_equivariant_denoiser.json). hyperoptimize_rows.sh creates the folder at submit time if it is
+# missing, and it is transferred in and back out, so resubmitting the same row resumes the study.
+# Delete the folder to start the study over.
+study = $Fn(out)
+transfer_input_files = hyperoptimize.py, ../../src, ../../config, $(study), osdf:///ospool/uc-shared/project/futurecolliders/rosep8/$(data)
+transfer_output_files = $(study)
 should_transfer_files = YES
 
-queue data,config,out,schedule from experiments_hyper.txt
+queue data,config,out,schedule from ./hyperoptimize_rows.sh experiments_hyper.txt |
