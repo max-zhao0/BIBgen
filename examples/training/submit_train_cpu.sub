@@ -11,11 +11,11 @@ arguments = $(data) $(config) $(tag) $(schedule) $(loss)
 +JobDurationCategory = "Long"
 
 request_cpus = 1
-request_memory = 16GB
+request_memory = 64GB
 request_disk = 50GB
 
 transfer_input_files = train.py, ../../src, ../../config, osdf:///ospool/uc-shared/project/futurecolliders/rosep8/$(data)
 transfer_output_files = denoiser_$(tag).pth, history_$(tag).csv
 should_transfer_files = YES
 
-queue data,config,tag,schedule,loss from experiments_phaseD.txt
+queue data,config,tag,schedule,loss from experiments_fourier_sweep_gaussian_phaseD.txt
