@@ -129,6 +129,31 @@ are sized from a measured run: 151 epochs of ``equivariant_denoiser.json`` on th
 epochs, model size and dataset; a shorter limit never queues longer and sometimes much shorter.
 A tag whose ``denoiser_<tag>.pth`` already exists is skipped unless you pass ``-f``.
 
+## Hyperparameter Optimization
+
+```bash
+python hyperoptimize.py [diffused_data] [noise_schedule] [model_template] -e [epochs] -b [batch_size] -n [trials] --timeout [hours] -o [best.json]
+```
+
+``model_template`` is a model config in ``config/model_templates/`` in which a hyperparameter may be a
+search range instead of a value, e.g. ``{"type": "int", "exponentiate": true, "range": [7, 9]}``
+searches ``2**7`` to ``2**9``. Each optuna trial trains for ``-e`` epochs and is scored by its best
+validation loss.
+
+The study is saved as it runs to a ``.db`` next to ``-o`` with the same name (``best.json`` ->
+``best.db``), and running the same command again resumes it. ``-n`` (default 40) is the total number
+of trials over all runs: completed, pruned and errored (e.g. out of memory) trials count towards it,
+while a trial cut off because the process was killed is run again. ``--timeout`` (default 20 hours) stops
+new trials from starting after that time; the trial in progress finishes. The best config, in the format
+``train.py`` reads, is written to ``-o`` only once all trials are done.
+
+``submit_hyperoptimize.sub`` reads ``(data, config, out, schedule)`` rows from ``experiments_hyper.txt``,
+where ``config`` is a template in ``config/model_templates/``. Each row's study lives in a folder named
+after ``out``, e.g. ``best_equivariant_denoiser/`` holding ``best_equivariant_denoiser.db`` and, once
+finished, ``best_equivariant_denoiser.json``. The folder is transferred to the job and back, so
+``condor_submit submit_hyperoptimize.sub`` resumes each unfinished study where the last job left off;
+resubmit until the ``.json`` appears. Delete the folder to start a study over.
+
 ## Generation
 
 ```bash
