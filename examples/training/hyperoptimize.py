@@ -72,7 +72,7 @@ def main(args):
         return 1
 
     with open(outpath, "w") as fout:
-        json.dump(best_config, fout)
+        json.dump(best_config, fout, indent=4)
     print("Wrote best config to", outpath)
     return 0
 
