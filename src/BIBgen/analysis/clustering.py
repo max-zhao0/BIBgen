@@ -2,7 +2,6 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import numpy as np
 
-from BIBgen.analysis.comparison_analyzer import ComparisonAnalyzer
 from BIBgen.analysis.utils import eta_from_cylindrical, deltaR
 
 def window_search(func, bottom, top, npoll=20, max_depth=5, cache=None):

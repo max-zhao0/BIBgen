@@ -1,0 +1,21 @@
+universe = container
+container_image = /cvmfs/singularity.opensciencegrid.org/htc/pytorch:2.3.1-cuda11.8
+
+log = job_$(tag)_$(Cluster)_$(Process).log
+error = job_$(tag)_$(Cluster)_$(Process).err
+output = job_$(tag)_$(Cluster)_$(Process).out
+
+executable = run_train.sh
+arguments = $(data) $(config) $(tag) $(schedule) $(loss)
+
++JobDurationCategory = "Long"
+
+request_cpus = 1
+request_memory = 64GB
+request_disk = 50GB
+
+transfer_input_files = train.py, ../../src, ../../config, osdf:///ospool/uc-shared/project/futurecolliders/rosep8/$(data)
+transfer_output_files = denoiser_$(tag).pth, history_$(tag).csv
+should_transfer_files = YES
+
+queue data,config,tag,schedule,loss from experiments_fourier_sweep_gaussian_phaseD.txt

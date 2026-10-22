@@ -17,7 +17,6 @@ class MaiaAxis:
             fontstyle=("italic", "normal", "normal", "normal"),
             ax=ax
         )
-
         self.fig = fig
         self.ax = ax
         self.outpath = outpath
