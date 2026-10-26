@@ -12,6 +12,12 @@ class BaseDataLoader:
         self.nevents = len(self.event_ids)
         self.ntau = len(infile[key + "/" + self.event_ids[0]]) - 1
 
+    def std(self):
+        return torch.from_numpy(self.infile["transformation/std"][()]).to(dtype=torch.float32)
+
+    def mu(self):
+        return torch.from_numpy(self.infile["transformation/mu"][()]).to(dtype=torch.float32)
+
     def __next__(self):
         raise NotImplementedError
 
@@ -56,6 +62,10 @@ class UnbatchedDataLoader(BaseDataLoader):
             Event at diffusion timestep tau+1
         tau : torch.Tensor
             Event at diffusion timestep tau
+        tau_idx : torch.Tensor
+            Diffusion timestep index tau
+        x_0 : torch.Tensor
+            Clean (tau=0) event, for losses that need the true forward-process posterior (e.g. NELBOLoss)
         """
         if self.idx >= self.nsteps:
             self.shuffle_order = torch.randperm(self.nsteps) if self.shuffle else torch.arange(self.nsteps)
@@ -66,7 +76,8 @@ class UnbatchedDataLoader(BaseDataLoader):
         self.idx += 1
 
         event = self.infile[self.key + "/" + self.event_ids[event_no]]
-        return torch.from_numpy(event[tau+1]).to(dtype=torch.float32), torch.from_numpy(event[tau]).to(dtype=torch.float32), tau
+        x_0 = torch.from_numpy(event[0]).to(dtype=torch.float32)
+        return torch.from_numpy(event[tau+1]).to(dtype=torch.float32), torch.from_numpy(event[tau]).to(dtype=torch.float32), tau, x_0
 
 class BatchedDataLoader(BaseDataLoader):
     def __init__(self,
@@ -144,4 +155,5 @@ class BatchedDataLoader(BaseDataLoader):
             self.cached_event = self.infile[self.key + "/" + event_id][:]
             self.cached_event_id = event_id
         event = self.cached_event
-        return torch.from_numpy(event[batch_taus + 1]).to(dtype=torch.float32), torch.from_numpy(event[batch_taus]).to(dtype=torch.float32), batch_taus
+        x_0 = torch.from_numpy(event[0]).to(dtype=torch.float32)
+        return torch.from_numpy(event[batch_taus + 1]).to(dtype=torch.float32), torch.from_numpy(event[batch_taus]).to(dtype=torch.float32), batch_taus, x_0

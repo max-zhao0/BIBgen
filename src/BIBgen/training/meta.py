@@ -13,12 +13,22 @@ from BIBgen.training.core import train, evaluate
 
 logger = logging.getLogger(__name__)
 
-def load_empty_model(model_config_path : str, n_timesteps : int):
+def load_empty_model(model_config_path : str, n_timesteps : int | None = None, mu : torch.Tensor | None = None, std : torch.Tensor | None = None):
     assert model_config_path.endswith(".json")
     with open(model_config_path, "r") as fin:
         model_config = json.load(fin)
-    model = getattr(model_classes, model_config["name"])(n_timesteps=n_timesteps, **model_config["hyperparameters"])
-    return model
+
+    model_cls = getattr(model_classes, model_config["name"])
+    model_args = model_config["hyperparameters"]
+    if model_cls.need_n_timesteps():
+        assert n_timesteps is not None
+        model_args["n_timesteps"] = n_timesteps
+    if model_cls.need_mu_std():
+        assert mu is not None and std is not None
+        model_args["std"] = std
+        model_args["mu"] = mu
+
+    return model_cls(**model_args)
 
 def hyperoptimize(
     model_template : dict[str, Any],
@@ -26,12 +36,12 @@ def hyperoptimize(
     validation_loader : BaseDataLoader,
     loss_fn : Callable[..., torch.Tensor],
     device : torch.device,
-    n_timesteps : int,
     nepochs : int = 20,
     ntrials : int = 40,
     storage : str | None = None,
     study_name : str | None = None,
     timeout : float | None = None,
+    n_timesteps : int | None = None,
 ) -> tuple[float | None, dict[str, Any] | None, int]:
     """
     Searches the hyperparameter ranges of a model template with optuna, minimizing validation loss.
@@ -51,11 +61,9 @@ def hyperoptimize(
     validation_loader : BaseDataLoader
         Loader for validation data
     loss_fn : Callable
-        Loss function called on model output as ``loss_fn(pred, y, tau)``
+        Loss function called on model output as ``loss_fn(pred, X, y, tau, x_0)``
     device : torch.device
         Device on which to train
-    n_timesteps : int
-        Number of diffusion timesteps, passed to the model
     nepochs : int
         Number of epochs to train each trial for
     ntrials : int
@@ -68,6 +76,8 @@ def hyperoptimize(
         Name of the study within ``storage``
     timeout : float or None
         Seconds after which no new trial is started. A trial already running is allowed to finish.
+    n_timesteps : int, optional
+        Number of diffusion timesteps, passed to the model
 
     Returns
     -------
@@ -100,8 +110,16 @@ def hyperoptimize(
             else:
                 hyperparameters[hp] = hp_value
 
+        model_params = dict(hyperparameters)
+        if Model.need_mu_std():
+            model_params["mu"] = training_loader.mu()
+            model_params["std"] = training_loader.std()
+        if Model.need_n_timesteps():
+            assert n_timesteps is not None
+            model_params["n_timesteps"] = n_timesteps
+
         try:
-            model = Model(n_timesteps=n_timesteps, **hyperparameters).to(device)
+            model = Model(**model_params).to(device)
             optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
 
             best_val_loss = np.inf

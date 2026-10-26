@@ -154,7 +154,7 @@ def run_tiny_hyperoptimize(storage, ntrials, timeout=None, loss_fn=None):
     dummy_fname, schedule = create_dummy_dataset(2, 10)
     gaussian_nll = GaussianNLLLoss()
     if loss_fn is None:
-        loss_fn = lambda pred, y, tau: gaussian_nll(pred, schedule[tau], y)
+        loss_fn = lambda pred, X, y, tau, x_0: gaussian_nll(pred, schedule[tau], y)
     with h5py.File(dummy_fname, "r") as fin:
         loader = BatchedDataLoader(fin, "training", batch_size=5)
         result = hyperoptimize(
@@ -171,7 +171,7 @@ def test_hyperoptimize_resumes_to_fixed_total(tmp_path):
     storage = "sqlite:///" + str(tmp_path / "study.db")
     schedule = torch.arange(1, 11) * 1e-3
     gaussian_nll = GaussianNLLLoss()
-    def slow_loss_fn(pred, y, tau):
+    def slow_loss_fn(pred, X, y, tau, x_0):
         # 8 calls per trial (4 training + 4 validation batches), so a trial takes ~0.8 s
         time.sleep(0.1)
         return gaussian_nll(pred, schedule[tau], y)
@@ -215,7 +215,7 @@ def test_hyperoptimize_counts_errored_trials(tmp_path):
     import optuna
     from optuna.trial import TrialState
 
-    def failing_loss_fn(pred, y, tau):
+    def failing_loss_fn(pred, X, y, tau, x_0):
         raise RuntimeError("Nonfinite test loss")
 
     storage = "sqlite:///" + str(tmp_path / "study.db")

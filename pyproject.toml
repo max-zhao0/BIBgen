@@ -23,7 +23,8 @@ dependencies = [
 	"h5py",
   "mplhep",
   "pandas",
-  "optuna"
+  "optuna",
+  "torch_cluster",
 ]
 
 [dependency-groups]
@@ -86,3 +87,10 @@ warn_unreachable = true
 [[tool.mypy.overrides]]
 module = ["numpy.*", "matplotlib.*", "sklearn.*", "torch.*"]
 ignore_missing_imports = true
+
+[tool.uv]
+# torch-cluster is sdist-only on PyPI and its build needs torch; lock against PyG's prebuilt
+# wheels instead. These only exist for Linux x86_64 CPython 3.10-3.13, and must match the
+# pinned torch version and CUDA build exactly — update this URL whenever torch is bumped.
+find-links = ["https://data.pyg.org/whl/torch-2.9.0+cu128.html"]
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64' and python_version < '3.14' and platform_python_implementation == 'CPython'"]

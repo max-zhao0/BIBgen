@@ -192,6 +192,16 @@ class EquivariantDenoiser(nn.Module):
 
         self.prediction_tower = nn.Sequential(OrderedDict(equivariant_layers))
 
+    @staticmethod
+    def need_mu_std():
+        "Indicates this class needs mu and std from sphering provided"
+        return False
+
+    @staticmethod
+    def need_n_timesteps():
+        "Indicates this class needs number of diffusion time steps"
+        return True
+
     def forward(self, input_set : torch.Tensor, tau : torch.Tensor):
         nhits = input_set.shape[-2]
 

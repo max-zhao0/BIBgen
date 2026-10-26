@@ -37,10 +37,10 @@ def main(args):
 
     if "predict_variances" in model_template["hyperparameters"] and model_template["hyperparameters"]["predict_variances"]:
         gaussian_nll = DecoupledGaussianNLLLoss(variance_loss_weight=args.variance_loss_weight)
-        loss_fn = lambda pred, y, tau: gaussian_nll(pred[0], pred[1], y)
+        loss_fn = lambda pred, X, y, tau, x_0: gaussian_nll(pred[0], pred[1], y)
     else:
         gaussian_nll = GaussianNLLLoss()
-        loss_fn = lambda pred, y, tau: gaussian_nll(pred, schedule[tau], y)
+        loss_fn = lambda pred, X, y, tau, x_0: gaussian_nll(pred, schedule[tau], y)
 
     schedule = torch.from_numpy(np.loadtxt(schedule_path)).to(device)
 

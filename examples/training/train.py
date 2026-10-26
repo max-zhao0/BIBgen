@@ -31,7 +31,7 @@ def main(args):
     validation_loader = BatchedDataLoader(infile, "validation", batch_size=batch_size)
     schedule = torch.from_numpy(np.loadtxt(schedule_path)).to(device)
 
-    model = load_empty_model(model_config_path, len(schedule)).to(device)
+    model = load_empty_model(model_config_path, len(schedule), training_loader.mu(), training_loader.std()).to(device)
 
     if args.loss == "nelbo":
         nelbo = NELBOLoss(schedule, variance_loss_weight=args.variance_loss_weight if model.predict_variances else None)

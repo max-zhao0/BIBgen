@@ -4,6 +4,7 @@
 export PYTHONPATH=$PYTHONPATH:/opt/conda/lib/python3.10/site-packages
 pip install h5py
 pip install optuna
+pip install torch_cluster -f https://data.pyg.org/whl/torch-2.3.0+cu118.html
 
 # The study lives in a folder named after the output config, e.g. best_equivariant_denoiser/ holding
 # best_equivariant_denoiser.db and, once every trial is done, best_equivariant_denoiser.json.

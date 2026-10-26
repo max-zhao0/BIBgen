@@ -1,0 +1,19 @@
+{
+  "name": "DGCNNDenoiser",
+  "hyperparameters": {
+    "tau_encoding_dimension" : 64,
+    "tau_encoding_scale" : 0.01,
+    "pos_encoding_kind" : "gaussian",
+    "pos_encoding_dimension" : 128,
+    "pos1_encoding_scale" : 4.0,
+    "pos2_encoding_scale" : 4.0,
+    "pos3_encoding_scale" : 0.0625,
+    "n_double_blocks" : 2,
+    "n_single_blocks" : 1,
+    "hidden_layer_size" : 64,
+    "n_hidden_extraction_layers" : 3,
+    "extraction_layer_size" : 128,
+    "n_neighbors" : 20,
+    "pos_encoding_seed": 42
+  }
+}

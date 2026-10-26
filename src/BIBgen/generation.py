@@ -55,7 +55,7 @@ def generate_sphered(
     n_steps_clamped = 0
 
     with torch.inference_mode():
-        for tau in torch.arange(model.n_timesteps-1, -1, -1, device=device):
+        for tau in torch.arange(len(schedule)-1, -1, -1, device=device):
             result = model(current_event, tau)
 
             if schedule is None:
@@ -90,7 +90,7 @@ def generate_sphered(
                 flush=True)
 
     if clamp_value is not None and total_clamped > 0:
-        print(f"Event summary: clamped {total_clamped} values across {n_steps_clamped}/{model.n_timesteps} "
+        print(f"Event summary: clamped {total_clamped} values across {n_steps_clamped}/{len(schedule)} "
               f"timesteps (|x| > {clamp_value})", flush=True)
 
     return current_event

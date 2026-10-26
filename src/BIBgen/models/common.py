@@ -219,12 +219,29 @@ class VarianceTower(nn.Module):
         variance_lookup = self.varhead_activation(self.varhead_lookup_table)
         return variance_lookup[tau - 1]
 
-def make_mlp(input_size : int, output_size : int, hidden_layer_size : int, n_hidden_layers : int):
-    assert n_hidden_layers >= 1
-    
-    stack = [("hidden0", nn.Linear(input_size, hidden_layer_size)), ("activation0", nn.ReLU())]
-    for ilayer in range(1, n_hidden_layers):
-        accumulator_stack.append(("hidden{}".format(ilayer), nn.Linear(hidden_layer_size, hidden_layer_size)), ("activation{}".format(ilayer), nn.ReLU()))
+def make_mlp(
+    input_size : int,
+    output_size : int,
+    hidden_layer_size : int,
+    n_hidden_layers : int,
+    activation : str = "ReLU",
+    final_activation : str | None = None,
+    initialize_zero : bool = False,
+):
+    stack = []
+    final_input_size = input_size
+    if n_hidden_layers >= 1:
+        stack += [("hidden0", nn.Linear(input_size, hidden_layer_size)), ("activation0", getattr(nn, activation)())]
+        for ilayer in range(1, n_hidden_layers):
+            stack += [("hidden{}".format(ilayer), nn.Linear(hidden_layer_size, hidden_layer_size)), ("activation{}".format(ilayer), getattr(nn, activation)())]
+        final_input_size = hidden_layer_size
 
-    accumulator_stack.append(("hidden{}".format(n_hidden_layers), nn.Linear(hidden_layer_size, output_size)))
+    final_linear = nn.Linear(final_input_size, output_size)
+    if initialize_zero:
+        nn.init.zeros_(final_linear.weight)
+        nn.init.zeros_(final_linear.bias)
+    stack.append(("hidden{}".format(n_hidden_layers), final_linear))
+    if final_activation is not None:
+        stack.append(("activation{}".format(n_hidden_layers), getattr(nn, final_activation)()))
+
     return nn.Sequential(OrderedDict(stack))

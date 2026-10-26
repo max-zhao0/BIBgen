@@ -29,7 +29,7 @@ def train(
     model : torch.nn.Module
         Denoising model
     loss_fn : Callable
-        loss function to be called directly on model output, i.e. loss_fn(pred, y, tau) instead of loss_fn(mu, std, y)
+        loss function to be called directly on model output, i.e. loss_fn(pred, X, y, tau, x_0) instead of loss_fn(mu, std, y)
     optimizer : torch.optim.Optimizer
         Optimizer for gradient descent
     device : torch.device
@@ -46,18 +46,18 @@ def train(
     model.train()
     grad_norm = None
     for istep in range(dataloader.nsteps):
-        X, y, tau = next(dataloader)
-        X, y, tau = X.to(device), y.to(device), tau.to(device)
+        X, y, tau, x_0 = next(dataloader)
+        X, y, tau, x_0 = X.to(device), y.to(device), tau.to(device), x_0.to(device)
         optimizer.zero_grad(set_to_none=True)
 
         # Compute prediction error
         if scaler is not None:
             with torch.autocast(device_type='cuda', dtype=torch.float16):
                 pred = model(X, tau)
-                loss = loss_fn(pred, y, tau)
+                loss = loss_fn(pred, X, y, tau, x_0)
         else:
             pred = model(X, tau)
-            loss = loss_fn(pred, y, tau)
+            loss = loss_fn(pred, X, y, tau, x_0)
 
         # Backpropagation
         try:
@@ -90,7 +90,7 @@ def evaluate(dataloader : BaseDataLoader, model : torch.nn.Module, loss_fn : Cal
     model : torch.nn.Module
         Denoising model
     loss_fn : Callable
-        loss function to be called directly on model output, i.e. loss_fn(pred, y, tau) instead of loss_fn(mu, std, y)
+        loss function to be called directly on model output, i.e. loss_fn(pred, X, y, tau, x_0) instead of loss_fn(mu, std, y)
     device : torch.device
         device on which to perform, usually torch.device("cuda") or torch.device("cpu")
 
@@ -104,10 +104,10 @@ def evaluate(dataloader : BaseDataLoader, model : torch.nn.Module, loss_fn : Cal
     test_loss = 0
     with torch.no_grad():
         for istep in range(dataloader.nsteps):
-            X, y, tau = next(dataloader)
-            X, y, tau = X.to(device), y.to(device), tau.to(device)
+            X, y, tau, x_0 = next(dataloader)
+            X, y, tau, x_0 = X.to(device), y.to(device), tau.to(device), x_0.to(device)
             pred = model(X, tau)
-            test_loss += loss_fn(pred, y, tau).item()
+            test_loss += loss_fn(pred, X, y, tau, x_0).item()
 
             if not np.isfinite(test_loss):
                 print("test_loss:", test_loss)
