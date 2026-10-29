@@ -24,7 +24,7 @@ def generate_sphered(
     device : torch.Device
         device on which to perform, usually torch.device("cuda") or torch.device("cpu")
     schedule : torch.Tensor | None
-        If model does not predict variances, then the noise schedule msut be provided in lieu of it
+        Noise schedule. Sets the number of denoising steps, and gives the variances unless the model predicts them
     demo : bool
         While denoising, whether to sample from N(mu, std) or just choose mu. Note setting the latter often risks collapse of the distribution.
     verbosity : bool
@@ -42,7 +42,7 @@ def generate_sphered(
     Raises
     ------
     ValueError
-        If model does not predict variances and schedule is not provided
+        If the model predicts variances but does not return them
     RuntimeError
         If variances predicted by model become non-finite
     """
@@ -58,9 +58,9 @@ def generate_sphered(
         for tau in torch.arange(len(schedule)-1, -1, -1, device=device):
             result = model(current_event, tau)
 
-            if schedule is None:
+            if model.predict_variances:
                 if len(result) != 2:
-                    raise ValueError("If schedule is not provided, result should be mu and var")
+                    raise ValueError("If the model predicts variances, result should be mu and var")
                 mu, var = result
                 if not torch.isfinite(var).all():
                     print("Non-finite var at tau", tau, flush=True)

@@ -1,6 +1,6 @@
 import argparse
 import os
-os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
+# os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 
 import h5py
 import torch
@@ -30,10 +30,10 @@ def main(args):
     test_event_ids, sizes = np.loadtxt(size_path, delimiter=",", unpack=True, dtype=str)
     sizes = sizes.astype(int)
 
-    model = load_empty_model(model_config_path, len(schedule)).to(device)
+    model = load_empty_model(model_config_path, len(schedule), torch.Tensor([0., 0., 0., 0.]), torch.Tensor([1., 1., 1., 1.])).to(device)
     model.load_state_dict(torch.load(model_path, weights_only=True, map_location=device))
 
-    gen_schedule = None if model.predict_variances else schedule
+    gen_schedule = schedule # Always pass in to get number of timesteps at least
 
     print(f"Writing generated events to {outpath}")
 

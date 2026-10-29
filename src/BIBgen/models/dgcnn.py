@@ -198,7 +198,6 @@ class DGCNNDenoiser(nn.Module):
             denoising network
         """
         super().__init__()
-        self.predict_variances = False
         self.tau_encoding = common.PositionalEncoding(tau_encoding_dimension, tau_encoding_scale)
         self.nhits_norm = nhits_normalization
 
@@ -266,6 +265,10 @@ class DGCNNDenoiser(nn.Module):
         "Indicates this class needs number of diffusion time steps"
         return False
 
+    @property
+    def predict_variances(self):
+        return False
+
     def forward(self, input_set : torch.Tensor, tau : torch.Tensor):
         """
         Runs forward pass of DGCNN denoising network
@@ -282,6 +285,13 @@ class DGCNNDenoiser(nn.Module):
         output_set : torch.Tensor
             Predicted hits at timestep tau - 1
         """
+        unbatched = input_set.ndim < 3
+        if unbatched:
+            input_set = input_set.unsqueeze(0)
+        if tau.ndim < 1:
+            tau = tau.unsqueeze(0)
+        assert input_set.ndim == 3 and tau.ndim == 1
+
         tau_encoded = self.tau_encoding(tau.to(input_set.dtype)) # (nbatch, tau_encoding_dimension)
         nhits = input_set.shape[-2]
         log_nhits = torch.log(tau_encoded.new_full((*tau_encoded.shape[:-1], 1), nhits / self.nhits_norm + 1)) # (nbatch, 1)
@@ -309,4 +319,5 @@ class DGCNNDenoiser(nn.Module):
 
         extraction_input = torch.cat(edgeconv_outputs, dim=2) # (nbatch, nhits, (n_double_blocks + n_single_blocks) * hidden_layer_size)
         epsilon = self.extraction_block(extraction_input) # (nbatch, nhits, 4)
-        return input_set + epsilon
+        output_set = input_set + epsilon
+        return output_set.squeeze(0) if unbatched else output_set

@@ -10,7 +10,7 @@ arguments = $(data) $(config) $(tag) $(schedule) $(loss)
 
 +JobDurationCategory = "Long"
 
-#gpus_minimum_capability = 7.5
+gpus_minimum_capability = 8.0
 request_gpus = 1
 
 # Blacklist Notre Dame GPUs, comment out later
@@ -23,6 +23,7 @@ request_disk = 50GB
 
 transfer_input_files = train.py, ../../src, ../../config, osdf:///ospool/uc-shared/project/futurecolliders/rosep8/$(data)
 transfer_output_files = denoiser_$(tag).pth, history_$(tag).csv
+when_to_transfer_output = ON_EXIT_OR_EVICT
 should_transfer_files = YES
 
 queue data,config,tag,schedule,loss from experiments_sched.txt
